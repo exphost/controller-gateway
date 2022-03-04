@@ -1,6 +1,6 @@
 import requests
-import os
 from graphene import ObjectType, String, Field, Mutation
+from flask import g, current_app
 
 
 def resolve_user(root, infp):
@@ -36,14 +36,20 @@ class RegisterUser(Mutation):
               gn,
               login,
               mail)
-        usersservice_endpoint = os.environ.get('USERSSERVICE_ENDPOINT')
-        response = requests.post(usersservice_endpoint, json={
-            "sn": sn,
-            "gn": gn,
-            "login": login,
-            "password": password,
-            "mail": mail,
-        })
+        headers = {}
+        if g.get('user', None):
+            headers['X-User'] = g.user
+        response = requests.post(
+                current_app.config['usersservice_endpoint']+"/users",
+                json={
+                    "sn": sn,
+                    "gn": gn,
+                    "login": login,
+                    "password": password,
+                    "mail": mail,
+                    },
+                headers=headers,
+        )
         if response.status_code == 409:
             return {'error': "User already exists: " +
                     str(response.content)}
