@@ -4,11 +4,22 @@ from flask import g, current_app
 
 
 def resolve_user(root, infp):
-    return User()
-
-
-def resolve_users(root, infp):
-    return [User(sn="s2")]
+    headers = {}
+    if g.get('user', None):
+        headers['X-User'] = g.user
+    response = requests.get(
+        current_app.config['usersservice_endpoint']+"/userinfo",
+        headers=headers,
+    )
+    if response.status_code == 401:
+        return {"error": "Not authorized"}
+    response_json = response.json()
+    return {"user": User(
+        sn="Not implemented",
+        gn="Not implemented",
+        mail="Not implemented",
+        login=response_json.get('username')
+        )}
 
 
 class User(ObjectType):
@@ -18,6 +29,11 @@ class User(ObjectType):
     gn = String()
     mail = String()
     login = String()
+
+
+class QueryUser(ObjectType):
+    user = Field(User)
+    error = String()
 
 
 class RegisterUser(Mutation):

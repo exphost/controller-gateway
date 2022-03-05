@@ -1,14 +1,11 @@
-from graphene import ObjectType, Schema, Field, List
+from graphene import ObjectType, Schema, Field
 import gateway.schema_user as schema_user
 import gateway.schema_group as schema_group
 
 
 class Query(ObjectType):
-    user = Field(schema_user.User)
-    users = List(schema_user.User)
-
+    user = Field(schema_user.QueryUser)
     resolve_user = schema_user.resolve_user
-    resolve_users = schema_user.resolve_users
 
 
 class Mutations(ObjectType):
