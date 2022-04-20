@@ -1,16 +1,21 @@
+include:
+  - https://gitlab.exphost.pl/exphost/exphost-helms/-/raw/master/common/gitlab-ci.yml
+  - https://gitlab.exphost.pl/exphost-controller/controller-helms/-/raw/master/helpers/gitlab-ci.yml
+
 stages:
   - prepare
   - tests
   - build
   - push
   - deploy
+  - cleanup
+  - upload
 
 
 tests:
   stage: tests
   image: python:3.9
   script:
-    - apt-get update && apt-get install libldap2-dev libsasl2-dev && apt-get clean
     - pip install -r requirements.txt
     - flake8
 #    - pytest --cov --cov-report term --cov-report xml --junitxml=report.xml
@@ -23,23 +28,16 @@ tests:
   cache:
     paths:
       - .cache/pip
-.registry:
-  before_script:
-    - echo -n $CI_REGISTRY_PASSWORD | podman login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
 
 build:
   stage: build
   image: quay.io/podman/stable
   extends: .registry
   script:
-    - podman pull $CI_REGISTRY_IMAGE:latest || true
+    - podman pull $CI_REGISTRY_IMAGE:dev || true
     - >
       podman build 
       --pull
-      --build-arg http_proxy=$http_proxy
-      --build-arg https_proxy=$https_proxy
-      --build-arg no_proxy=$no_proxy
-      --cache-from $CI_REGISTRY_IMAGE:latest
       --tag $CI_REGISTRY_IMAGE:dev
       .
 
@@ -70,3 +68,80 @@ push tag:
     - podman pull $CI_REGISTRY_IMAGE:dev
     - podman tag $CI_REGISTRY_IMAGE:dev $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
     - podman push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+
+deploy branch:
+  stage: deploy
+  image:
+    name: alpine/helm
+  environment:
+    name: dev/$CI_COMMIT_REF_SLUG
+    on_stop: delete_app
+    url: https://$KUBE_NAMESPACE.ci.exphost.pl
+  before_script:
+  - helm repo add exphost https://gitlab.exphost.pl/charts
+  - helm repo add dex https://charts.dexidp.io
+  - helm repo update
+  - apk add --no-cache ca-certificates git curl
+  - curl -L "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" -o /usr/local/bin/kubectl
+  - chmod +x /usr/local/bin/kubectl
+  script:
+  - echo "CI_ENVIRONMENT_SLUG $CI_ENVIRONMENT_SLUG"
+  - echo "CI_ENVIRONMENT_SLUG $CI_ENVIRONMENT_SLUG"
+  - echo "KUBE_NAMESPACE $KUBE_NAMESPACE"
+  - sed -i "s/__DOMAIN__/${KUBE_NAMESPACE}.ci.exphost.pl/" gitlab-ci-values-dex.yml
+  - sed -i "s/__DOMAIN__/${KUBE_NAMESPACE}.ci.exphost.pl/" gitlab-ci-values-gateway.yml
+  - sed -i "s/__DOMAIN__/${KUBE_NAMESPACE}.ci.exphost.pl/" gitlab-ci-values.yml
+  - >
+    helm upgrade -n $KUBE_NAMESPACE -i auth dex/dex -f gitlab-ci-values-dex.yml
+    --wait --wait-for-jobs
+  - >
+    helm upgrade -n $KUBE_NAMESPACE -i ldap exphost/openldap -f gitlab-ci-values.yml
+    --wait --wait-for-jobs
+  - >
+    helm upgrade -n $KUBE_NAMESPACE -i test-controller exphost/exphost-controller -f gitlab-ci-values.yml
+    --version v0.3.0-10-g94ca97d
+    --set global.domain=${KUBE_NAMESPACE}.ci.exphost.pl
+    --wait --wait-for-jobs
+  - >
+    helm upgrade -n $KUBE_NAMESPACE -i test-gateway chart -f gitlab-ci-values-gateway.yml
+    --set podAnnotations."app\.gitlab\.com/app"=$CI_PROJECT_PATH_SLUG
+    --set podAnnotations."app\.gitlab\.com/env"=$CI_ENVIRONMENT_SLUG
+    --set global.domain=${KUBE_NAMESPACE}.ci.exphost.pl
+    --wait --wait-for-jobs
+  - kubectl -n $KUBE_NAMESPACE rollout restart deployment test-gateway
+  rules:
+    - if: $CI_COMMIT_BRANCH
+
+delete_app:
+  stage: cleanup
+  image:
+    name: alpine/helm
+  before_script:
+  - apk add --no-cache ca-certificates git curl
+  - curl -L "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" -o /usr/local/bin/kubectl
+  - chmod +x /usr/local/bin/kubectl
+  script:
+    - helm uninstall -n $KUBE_NAMESPACE ldap --wait
+    - helm uninstall -n $KUBE_NAMESPACE auth --wait
+    - helm uninstall -n $KUBE_NAMESPACE test-controller --wait
+    - helm uninstall -n $KUBE_NAMESPACE test-appsservice --wait
+    - kubectl -n $KUBE_NAMESPACE delete pvc --all
+  variables:
+    GIT_STRATEGY: none
+  environment:
+    name: dev/$CI_COMMIT_REF_SLUG
+    action: stop
+  needs:
+    - deploy branch
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: never
+    - if: $CI_COMMIT_BRANCH
+
+upload:
+  extends: .upload
+  only:
+    refs:
+      - tags
+      - master
