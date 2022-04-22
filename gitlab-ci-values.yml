@@ -9,6 +9,10 @@ usersservice:
 webui:
   image:
     tag: dev
+  endpoints:
+    authendpoint:
+      url: https://auth.__DOMAIN__/dex
+      secret: Yp4fGf79FutdBDJArQqxhUiVbufVxjzu
 gateway:
   enabled: false
 

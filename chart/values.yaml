@@ -6,6 +6,7 @@ image:
 endpoints:
   usersservice: "http://usersservice:5000/users/users/"
   authendpoint: "https://auth.example.com/dex"
+  appsservice: "http://appsservice:5000/"
 global:
   domain: example.com
 ingress: {}

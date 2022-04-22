@@ -99,7 +99,7 @@ deploy branch:
     --wait --wait-for-jobs
   - >
     helm upgrade -n $KUBE_NAMESPACE -i test-controller exphost/exphost-controller -f gitlab-ci-values.yml
-    --version v0.3.0-10-g94ca97d
+    --version v0.3.0-12-g086a392
     --set global.domain=${KUBE_NAMESPACE}.ci.exphost.pl
     --wait --wait-for-jobs
   - >
