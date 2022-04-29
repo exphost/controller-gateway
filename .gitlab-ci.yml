@@ -145,3 +145,10 @@ upload:
     refs:
       - tags
       - master
+
+upload latest:
+  extends: .upload latest
+  only:
+    refs:
+      - tags
+      - master
