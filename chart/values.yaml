@@ -2,7 +2,7 @@ enabled: true
 image:
   name: registry.gitlab.exphost.pl/exphost-controller/gateway
   pullPolicy: Always
-  tag: latest
+  tag:
 endpoints:
   usersservice: "http://usersservice:5000/users/users/"
   authendpoint: "https://auth.example.com/dex"
