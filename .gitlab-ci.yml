@@ -152,3 +152,14 @@ upload latest:
     refs:
       - tags
       - master
+
+update general helm:
+  extends: .deploy-to-git
+  stage: upload
+  variables:
+    patch_cmd: yq -i e ".dependencies[] |= select(.name == \"gateway\").version=\"$$VERSION\"" chart/Chart.yaml
+    repo: git@gitlab.exphost.pl:exphost-controller/controller-helms.git
+  only:
+    refs:
+      - tags
+      - master
