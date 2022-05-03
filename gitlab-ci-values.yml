@@ -1,14 +1,10 @@
 usersservice:
-  image:
-    tag: dev
   ldap:
     uri: "ldap://ldap-openldap"
     dn: "cn=admin,dc=example,dc=com"
     password:
       password: pass123
 webui:
-  image:
-    tag: dev
   endpoints:
     authendpoint:
       url: https://auth.__DOMAIN__/dex
@@ -17,8 +13,6 @@ gateway:
   enabled: false
 
 appsservice:
-  image:
-    tag: dev
   git_repo:
     url: git@gitlab.exphost.pl:exphost-controller/test_tenants_repo.git
     sshkey:

@@ -9,6 +9,18 @@ class AppNginx(ObjectType):
         interfaces = (App,)
 
 
+def resolve_nginx(root, info, org):
+    headers = {}
+    if g.get('user', None):
+        headers['X-User'] = g.user
+    response = requests.get(
+        current_app.config['appsservice_endpoint']+"/nginx/?org="+org,
+        headers=headers,
+    )
+    if response.status_code == 200:
+        return [AppNginx(x['name'], org) for x in response.json()['nginx']]
+
+
 class CreateAppNginx(Mutation):
     class Arguments:
         name = String(required=True)
