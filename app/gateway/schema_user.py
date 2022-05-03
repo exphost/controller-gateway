@@ -1,9 +1,9 @@
 import requests
-from graphene import ObjectType, String, Field, Mutation
+from graphene import ObjectType, String, Field, Mutation, List
 from flask import g, current_app
 
 
-def resolve_user(root, infp):
+def resolve_user(root, info):
     headers = {}
     if g.get('user', None):
         headers['X-User'] = g.user
@@ -15,9 +15,10 @@ def resolve_user(root, infp):
         return {"error": "Not authorized"}
     response_json = response.json()
     return {"user": User(
-        sn="Not implemented",
-        gn="Not implemented",
-        mail="Not implemented",
+        sn=response_json.get('sn'),
+        gn=response_json.get('gn'),
+        mail=response_json.get('mail'),
+        groups=response_json.get('groups'),
         login=response_json.get('username')
         )}
 
@@ -29,6 +30,7 @@ class User(ObjectType):
     gn = String()
     mail = String()
     login = String()
+    groups = List(String)
 
 
 class QueryUser(ObjectType):
