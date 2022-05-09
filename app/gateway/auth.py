@@ -2,6 +2,8 @@ import traceback
 import jwt
 from jwt import PyJWKClient
 from flask import g, current_app
+import json
+import base64
 
 
 def get_userinfo(token):
@@ -26,6 +28,7 @@ def validate_token(token):
         print(data)
         print("validate_token after")
         g.user = data['name']
+        g.user_full = base64.b64encode(json.dumps(data).encode()).decode()
         return True
     except (jwt.exceptions.PyJWKClientError,
             jwt.exceptions.InvalidAudienceError,

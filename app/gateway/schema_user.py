@@ -7,6 +7,8 @@ def resolve_user(root, info):
     headers = {}
     if g.get('user', None):
         headers['X-User'] = g.user
+    if g.get('user_full', None):
+        headers['X-User-Full'] = g.user_full
     response = requests.get(
         current_app.config['usersservice_endpoint']+"/userinfo",
         headers=headers,
@@ -57,6 +59,8 @@ class RegisterUser(Mutation):
         headers = {}
         if g.get('user', None):
             headers['X-User'] = g.user
+        if g.get('user_full', None):
+            headers['X-User-Full'] = g.user_full
         response = requests.post(
                 current_app.config['usersservice_endpoint']+"/users",
                 json={

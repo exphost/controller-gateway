@@ -13,6 +13,8 @@ def resolve_nginx(root, info, org):
     headers = {}
     if g.get('user', None):
         headers['X-User'] = g.user
+    if g.get('user_full', None):
+        headers['X-User-Full'] = g.user_full
     response = requests.get(
         current_app.config['appsservice_endpoint']+"/nginx/?org="+org,
         headers=headers,
@@ -33,6 +35,8 @@ class CreateAppNginx(Mutation):
         headers = {}
         if g.get('user', None):
             headers['X-User'] = g.user
+        if g.get('user_full', None):
+            headers['X-User-Full'] = g.user_full
         print("Creating nginx app:",
               name,
               org)
