@@ -1,6 +1,7 @@
 import requests
 from graphene import ObjectType, String, Field, Mutation
 from .schema_app import App
+from .schema_git import GitInput
 from flask import g, current_app
 
 
@@ -27,11 +28,13 @@ class CreateAppNginx(Mutation):
     class Arguments:
         name = String(required=True)
         org = String(required=True)
+        git = GitInput(required=False)
+        fqdn = String(required=False)
 
     error = String()
     nginx = Field(lambda: AppNginx)
 
-    def mutate(root, info, name, org):
+    def mutate(root, info, name, org, git=None, fqdn=None):
         headers = {}
         if g.get('user', None):
             headers['X-User'] = g.user
@@ -39,13 +42,17 @@ class CreateAppNginx(Mutation):
             headers['X-User-Full'] = g.user_full
         print("Creating nginx app:",
               name,
-              org)
+              org,
+              git,
+              fqdn)
 
         response = requests.post(
             current_app.config['appsservice_endpoint']+"/nginx/",
             json={
                 "name": name,
                 "org": org,
+                "git": git,
+                "fqdn": fqdn
             },
             headers=headers,
         )
