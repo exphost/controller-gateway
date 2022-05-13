@@ -114,6 +114,8 @@ deploy branch:
     --wait --wait-for-jobs
   - kubectl -n $KUBE_NAMESPACE rollout restart deployment test-gateway
   rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: never
     - if: $CI_COMMIT_BRANCH
 
 delete_app:
