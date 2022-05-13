@@ -9,6 +9,13 @@ class AppNginx(ObjectType):
     class Meta:
         interfaces = (App,)
 
+    class GitRepo(ObjectType):
+        repo = String(required=True)
+        branch = String(required=False)
+
+    fqdn = String(required=False)
+    git = Field(GitRepo, required=False)
+
 
 def resolve_nginx(root, info, org):
     headers = {}
@@ -21,7 +28,11 @@ def resolve_nginx(root, info, org):
         headers=headers,
     )
     if response.status_code == 200:
-        return [AppNginx(x['name'], org) for x in response.json()['nginx']]
+        return [AppNginx(name=x['name'],
+                         org=org,
+                         git=x.get('git', None),
+                         fqdn=x.get('fqdn', None)
+                         ) for x in response.json()['nginx']]
 
 
 class CreateAppNginx(Mutation):
@@ -66,7 +77,10 @@ class CreateAppNginx(Mutation):
             return {'error': "Unauthorized: " +
                     str(response.content)}
 
-        nginx = AppNginx(name, org)
+        nginx = AppNginx(name=name,
+                         org=org,
+                         git=git,
+                         fqdn=fqdn)
         # j = response.json()
         # nginx = AppNginx(name=j['name'], org=j['org']) #TODO #257
         return CreateAppNginx(nginx=nginx)
