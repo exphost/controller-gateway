@@ -1,5 +1,5 @@
 import requests
-from graphene import ObjectType, String, Field, Mutation
+from graphene import ObjectType, String, Field, Mutation, List
 from .schema_app import App
 from .schema_git import GitInput
 from flask import g, current_app
@@ -13,7 +13,7 @@ class AppNginx(ObjectType):
         repo = String(required=True)
         branch = String(required=False)
 
-    fqdn = String(required=False)
+    fqdns = List(String, required=False)
     git = Field(GitRepo, required=False)
 
 
@@ -31,7 +31,7 @@ def resolve_nginx(root, info, org):
         return [AppNginx(name=x['name'],
                          org=org,
                          git=x.get('git', None),
-                         fqdn=x.get('fqdn', None)
+                         fqdns=x.get('fqdns', None)
                          ) for x in response.json()['nginx']]
 
 
@@ -40,12 +40,12 @@ class CreateAppNginx(Mutation):
         name = String(required=True)
         org = String(required=True)
         git = GitInput(required=False)
-        fqdn = String(required=False)
+        fqdns = List(String, required=False)
 
     error = String()
     nginx = Field(lambda: AppNginx)
 
-    def mutate(root, info, name, org, git=None, fqdn=None):
+    def mutate(root, info, name, org, git=None, fqdns=None):
         headers = {}
         if g.get('user', None):
             headers['X-User'] = g.user
@@ -55,7 +55,7 @@ class CreateAppNginx(Mutation):
               name,
               org,
               git,
-              fqdn)
+              fqdns)
 
         response = requests.post(
             current_app.config['appsservice_endpoint']+"/nginx/",
@@ -63,7 +63,7 @@ class CreateAppNginx(Mutation):
                 "name": name,
                 "org": org,
                 "git": git,
-                "fqdn": fqdn
+                "fqdns": fqdns
             },
             headers=headers,
         )
@@ -80,7 +80,7 @@ class CreateAppNginx(Mutation):
         nginx = AppNginx(name=name,
                          org=org,
                          git=git,
-                         fqdn=fqdn)
+                         fqdns=fqdns)
         # j = response.json()
         # nginx = AppNginx(name=j['name'], org=j['org']) #TODO #257
         return CreateAppNginx(nginx=nginx)
