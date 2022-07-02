@@ -11,10 +11,10 @@ metadata:
 spec:
   tls:
     - hosts:
-        - {{ .Values.global.domain }}
-      secretName: {{ .Values.global.domain }}-tls
+        - console.{{ .Values.global.domain }}
+      secretName: consoel-{{ .Values.global.domain }}-tls
   rules:
-    - host: {{ .Values.global.domain }}
+    - host: console.{{ .Values.global.domain }}
       http:
         paths:
           - path: /graphql

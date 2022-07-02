@@ -12,6 +12,10 @@ webui:
 gateway:
   enabled: false
 
+landingpage:
+  ingress:
+    hostname: __DOMAIN__
+
 appsservice:
   git_repo:
     url: git@gitlab.exphost.pl:exphost-controller/test_tenants_repo.git
