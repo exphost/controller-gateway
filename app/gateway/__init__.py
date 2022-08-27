@@ -22,6 +22,8 @@ def create_app(test_config=None):
 
     app.config['usersservice_endpoint'] = os.environ.get('USERSSERVICE_ENDPOINT', None)  # noqa: E501
     app.config['appsservice_endpoint'] = os.environ.get('APPSSERVICE_ENDPOINT', None)  # noqa: E501
+    app.config['domainsservice_endpoint'] = os.environ.get('DOMAINSSERVICE_ENDPOINT', None)  # noqa: E501
+    app.config['auth_endpoint'] = os.environ.get('AUTH_ENDPOINT', None)
 
     if not app.config['usersservice_endpoint']:
         app.logger.error("USERSSERVICE_ENDPOINT not provided")
@@ -31,10 +33,14 @@ def create_app(test_config=None):
         app.logger.error("APPSSERVICE_ENDPOINT not provided")
         return False
 
-    app.config['auth_endpoint'] = os.environ.get('AUTH_ENDPOINT', None)
+    if not app.config['domainsservice_endpoint']:
+        app.logger.error("DOMAINSSERVICE_ENDPOINT not provided")
+        return False
+
     if not app.config['auth_endpoint']:
         app.logger.error("AUTH_ENDPOINT not provided")
         return False
+
     auth_endpoint = app.config['auth_endpoint']
     auth_config_endpoint = auth_endpoint+"/.well-known/openid-configuration"
     app.logger.info(f"Getting auth config from: {auth_config_endpoint}")
