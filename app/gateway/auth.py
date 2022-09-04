@@ -29,6 +29,7 @@ def validate_token(token):
         print("validate_token after")
         g.user = data['name']
         g.user_full = base64.b64encode(json.dumps(data).encode()).decode()
+        g.token = token
         return True
     except (jwt.exceptions.PyJWKClientError,
             jwt.exceptions.InvalidAudienceError,

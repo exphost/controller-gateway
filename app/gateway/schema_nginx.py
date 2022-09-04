@@ -3,6 +3,7 @@ from graphene import ObjectType, String, Field, Mutation, List
 from .schema_app import App
 from .schema_git import GitInput
 from flask import g, current_app
+from .helpers import prepare_common_headers
 
 
 class AppNginx(ObjectType):
@@ -18,11 +19,7 @@ class AppNginx(ObjectType):
 
 
 def resolve_nginx(root, info, org):
-    headers = {}
-    if g.get('user', None):
-        headers['X-User'] = g.user
-    if g.get('user_full', None):
-        headers['X-User-Full'] = g.user_full
+    headers = prepare_common_headers(g)
     response = requests.get(
         current_app.config['appsservice_endpoint']+"/nginx/?org="+org,
         headers=headers,
@@ -46,11 +43,7 @@ class CreateAppNginx(Mutation):
     nginx = Field(lambda: AppNginx)
 
     def mutate(root, info, name, org, git=None, fqdns=None):
-        headers = {}
-        if g.get('user', None):
-            headers['X-User'] = g.user
-        if g.get('user_full', None):
-            headers['X-User-Full'] = g.user_full
+        headers = prepare_common_headers(g)
         print("Creating nginx app:",
               name,
               org,

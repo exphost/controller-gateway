@@ -1,6 +1,7 @@
 import requests
 from graphene import ObjectType, String, Field, Mutation, List
 from flask import g, current_app
+from .helpers import prepare_common_headers
 
 
 class Domain(ObjectType):
@@ -16,9 +17,7 @@ class QueryDomain(ObjectType):
 
 
 def resolve_domain(root, info, org, name=None):
-    headers = {}
-    if g.get('user_full', None):
-        headers['X-User-Full'] = g.user_full
+    headers = prepare_common_headers(g)
     url = current_app.config['domainsservice_endpoint']+"/v1/domains?org="+org
     if name:
         url += "&name="+name
@@ -48,9 +47,7 @@ class RegisterDomain(Mutation):
         print("Creating domain:",
               name,
               org)
-        headers = {}
-        if g.get('user_full', None):
-            headers['X-User-Full'] = g.user_full
+        headers = prepare_common_headers(g)
         response = requests.post(
                 current_app.config['domainsservice_endpoint']+"/v1/domains",
                 json={

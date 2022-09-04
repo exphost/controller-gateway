@@ -1,6 +1,7 @@
 import requests
 from graphene import ObjectType, String, Field, Mutation, List
 from flask import g, current_app
+from .helpers import prepare_common_headers
 
 
 def resolve_group(root, info):
@@ -27,11 +28,7 @@ class RegisterGroup(Mutation):
     error = String()
 
     def mutate(root, info, cn, members):
-        headers = {}
-        if g.get('user', None):
-            headers['X-User'] = g.user
-        if g.get('user_full', None):
-            headers['X-User-Full'] = g.user_full
+        headers = prepare_common_headers(g)
         print("Creating group:",
               cn,
               members)
