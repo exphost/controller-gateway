@@ -5,3 +5,4 @@ endpoints:
   usersservice: "http://test-controller-usersservice:5000/users/"
   appsservice: "http://test-controller-appsservice:5000/"
   domainsservice: "http://test-controller-domainsservice:5000/"
+  emailsservice: "http://test-controller-usersservice:5000/"

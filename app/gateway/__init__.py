@@ -24,6 +24,7 @@ def create_app(test_config=None):
     app.config['appsservice_endpoint'] = os.environ.get('APPSSERVICE_ENDPOINT', None)  # noqa: E501
     app.config['domainsservice_endpoint'] = os.environ.get('DOMAINSSERVICE_ENDPOINT', None)  # noqa: E501
     app.config['auth_endpoint'] = os.environ.get('AUTH_ENDPOINT', None)
+    app.config['emailsservice_endpoint'] = os.environ.get('EMAILSSERVICE_ENDPOINT', None)  # noqa: E501
 
     if not app.config['usersservice_endpoint']:
         app.logger.error("USERSSERVICE_ENDPOINT not provided")

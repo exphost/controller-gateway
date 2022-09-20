@@ -35,6 +35,8 @@ spec:
               value: {{ .Values.endpoints.authendpoint }}
             - name: DOMAINSSERVICE_ENDPOINT
               value: {{ .Values.endpoints.domainsservice }}
+            - name: EMAILSSERVICE_ENDPOINT
+              value: {{ .Values.endpoints.emailsservice }}
           ports:
             - name: http
               containerPort: 5000

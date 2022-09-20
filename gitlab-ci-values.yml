@@ -4,6 +4,8 @@ usersservice:
     dn: "cn=admin,dc=example,dc=com"
     password:
       password: pass123
+  endpoints:
+    apigateway: http://test-gateway:5000/graphql
 webui:
   endpoints:
     authendpoint:

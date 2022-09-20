@@ -8,6 +8,7 @@ endpoints:
   authendpoint: "https://auth.example.com/dex"
   appsservice: "http://appsservice:5000/"
   domainsservice: "http://domainsservice:5000/"
+  emailsservice: "http://usersservice:5000/users/"
 global:
   domain: example.com
 ingress: {}
